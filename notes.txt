@@ -1,0 +1,9 @@
+user checkout
+
+API 
+    guest checkout 
+        post > email 
+    registered user
+        post > user
+    sign up user 
+        user 
