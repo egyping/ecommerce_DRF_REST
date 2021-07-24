@@ -10,10 +10,20 @@ from catalog.views import (
     ProductRetrieveAPIView
 )
 from orders.views import UserCheckoutAPI
+# from rest_framework_simplejwt.views import (
+#     TokenObtainPairView,
+#     TokenRefreshView,
+# )
 
+from  homepage.views import MyTokenObtainPairView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
+    # JWT Token 
+    path('api/user/login/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    #path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
     path('api-auth/', include('rest_framework.urls')),
 
     # Categories APIs
@@ -26,6 +36,9 @@ urlpatterns = [
 
     # API User 
     path('api/user/checkout/', UserCheckoutAPI.as_view(), name="user_checkout_api"),
+
+
+    
 ]
 
 

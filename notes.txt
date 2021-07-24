@@ -7,3 +7,16 @@ API
         post > user
     sign up user 
         user 
+
+** Simple JWT installation ** 
+pip install djangorestframework-simplejwt
+
+'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+
+urls
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
