@@ -22,6 +22,7 @@ class UserCheckoutMixin(object):
 
 
     def get_checkout_data(self, user=None, email=None):
+        # If post has only email and the email already engaged with one of the User model instance
         if email and not user:
             user_exists = User.objects.filter(email=email).count()
             if user_exists != 0:
@@ -29,10 +30,13 @@ class UserCheckoutMixin(object):
 
         data = {}
         user_checkout = None
+
+        # Request has user and not email it will response by the user and user email
         if user and not email:
             if user.is_authenticated:
-                user_checkout = UserCheckout.objects.get_or_create(user=user, email=user.email)[0] #(instance, created)
-            
+                user_checkout = UserCheckout.objects.get_or_create(user=user, email=user.email)[0]
+
+        # Guest checkout only email in the POST, it will create UserCheckout or it will retrieve the existing one
         elif email:
             try:
                 user_checkout = UserCheckout.objects.get_or_create(email=email)[0]
@@ -45,7 +49,7 @@ class UserCheckoutMixin(object):
             pass
 
         if user_checkout:
-            data["token"] = user_checkout.get_client_token()
+            data["bt_token"] = user_checkout.get_client_token()
             data["success"]= True
             data["braintree_id"] = user_checkout.get_braintree_id
             data["user_checkout_id"] = user_checkout.id
@@ -67,13 +71,19 @@ class UserCheckoutAPI(UserCheckoutMixin, APIView):
     def post(self, request, format=None):
         data = {}
         email = request.data.get("email")
+
+        # If logged in and app knows the user and email
         if request.user.is_authenticated:
             if email == request.user.email:
                 data = self.get_checkout_data(user=request.user, email=email)
             else:
                 data = self.get_checkout_data(user=request.user)
+        
+        # Guest checkout 
         elif email and not request.user.is_authenticated:
             data = self.get_checkout_data(email=email)
+        
+        # 
         else:
             data = self.user_failure(message="Make sure you are authenticated or using a valid email.")
         return Response(data)

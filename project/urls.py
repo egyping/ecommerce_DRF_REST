@@ -20,7 +20,7 @@ from  homepage.views import MyTokenObtainPairView
 urlpatterns = [
     path('admin/', admin.site.urls),
     
-    # JWT Token 
+    # JWT Token => Login API 
     path('api/user/login/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     #path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
@@ -34,7 +34,7 @@ urlpatterns = [
     path('api/products/', ProductListAPIView.as_view(), name="products_list"),
     path('api/products/<int:pk>/', ProductRetrieveAPIView.as_view(), name="product_details"),
 
-    # API User 
+    # API for guest checkout who has email only
     path('api/user/checkout/', UserCheckoutAPI.as_view(), name="user_checkout_api"),
 
 

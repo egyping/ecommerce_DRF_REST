@@ -1,22 +1,25 @@
 user checkout
 
-API 
-    guest checkout 
-        post > email 
-    registered user
-        post > user
-    sign up user 
-        user 
+Checkout > 3 Options 
+    A- Guest Checkout
+    B- Login user Checkout 
+    C- Register user Checkout 
 
-** Simple JWT installation ** 
-pip install djangorestframework-simplejwt
+    ** All Output APIs should has the access token **
 
-'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    A- Guest checkout API 
+        input parameter == email 
+        Guest checkout API > 3 Options
+            1- If the email not exist in both User & UserCheckout it will create in UserCheckout
 
-urls
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
+            2- If the email exist in the UserCheckout 
+
+            3- If the email engaged with registered user it will return "Please login"
+
+            
+    B- Login API 
+        inputs parameters == username and password 
+        Login API it will return the access token \ email \ id \ braintree_id \ user name 
+
+    C- Register User API 
+        inputs parameters == First name \ user name \ email \ password 
