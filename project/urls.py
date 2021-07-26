@@ -16,13 +16,14 @@ from orders.views import UserCheckoutAPI
 # )
 
 from  homepage.views import MyTokenObtainPairView
+from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     
     # JWT Token => Login API 
     path('api/user/login/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    #path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     path('api-auth/', include('rest_framework.urls')),
 

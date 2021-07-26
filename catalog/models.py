@@ -67,6 +67,7 @@ class Variation(models.Model):
     value = models.CharField(max_length=5)
     sku = models.CharField(max_length=20)
     inventory = models.IntegerField(null=True, blank=True) 
+    price = models.DecimalField(decimal_places=2, max_digits=20, null=True, blank=True)
 
     def __unicode__(self):
         return self.title
