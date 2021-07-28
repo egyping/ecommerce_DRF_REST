@@ -1,6 +1,7 @@
 user checkout
 
-Checkout > 3 Options 
+Login through Checkout > 3 Options 
+----------------------
     A- Guest Checkout
     B- Login user Checkout 
     C- Register user Checkout 
@@ -23,3 +24,18 @@ Checkout > 3 Options
 
     C- Register User API 
         inputs parameters == First name \ user name \ email \ password 
+
+
+Cart API update 
+----
+    either cart already created OR new cart 
+
+    1- New cart triggered at adding item to the cart along with quantity 
+        Cart create token encoded from base64 and return the encoded value represent the cart code
+        same api will add the item and quantity 
+    
+    2- same API everytime will pass the encoded cart code and pass the item and quantity 
+
+
+
+
