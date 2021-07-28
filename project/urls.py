@@ -9,6 +9,7 @@ from catalog.views import (
     ProductListAPIView,
     ProductRetrieveAPIView
 )
+from carts.views import CartAPIView
 from orders.views import UserCheckoutAPI
 # from rest_framework_simplejwt.views import (
 #     TokenObtainPairView,
@@ -38,6 +39,8 @@ urlpatterns = [
     # API for guest checkout who has email only
     path('api/user/checkout/', UserCheckoutAPI.as_view(), name="user_checkout_api"),
 
+    # Cart 
+    path('api/cart/', CartAPIView.as_view(), name="cart_api"),
 
     
 ]
