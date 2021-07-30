@@ -23,7 +23,7 @@ class CartItem(models.Model):
 
 
 def cart_item_pre_save_receiver(sender, instance, *args, **kwargs):
-    qty = instance.quantity
+    qty = int(instance.quantity)
     if qty >= 1:
         price = instance.item.get_price()
         line_item_total = Decimal(qty) * Decimal(price)

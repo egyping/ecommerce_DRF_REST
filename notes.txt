@@ -26,15 +26,29 @@ Login through Checkout > 3 Options
         inputs parameters == First name \ user name \ email \ password 
 
 
-Cart API update 
+Cart API  
 ----
-    either cart already created OR new cart 
+    This API end point serve three cases 
 
-    1- New cart triggered at adding item to the cart along with quantity 
-        Cart create token encoded from base64 and return the encoded value represent the cart code
-        same api will add the item and quantity 
-    
-    2- same API everytime will pass the encoded cart code and pass the item and quantity 
+    1- New Cart 
+
+    2- Update Cart 
+
+    3- Get cart data 
+        URL http://127.0.0.1:8000/api/cart/?token=eydjYXJ0X2lkJzogMTR9
+        inputs token=eydjYXJ0X2lkJzogMTR9
+        outputs
+            {
+                "token": "eydjYXJ0X2lkJzogMTR9",
+                "cart": 14,
+                "total": 0.0,
+                "subtotal": 0.0,
+                "tax_total": 0.0,
+                "count": 0,
+                "items": 0
+            }
+
+
 
 
 
