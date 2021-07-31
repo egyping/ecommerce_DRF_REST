@@ -9,69 +9,26 @@ import ast
 from django.http import Http404
 from catalog.models import Variation
 
+from.serializers import CartItemSerializer
+from .mixins import TokenMixin, CartUpdateAPIMixin
 
 
-class CartUpdateAPIMixin(object):
-        def update_cart(self, *args, **kwargs):
-            request = self.request
-            cart = self.cart
-            if cart:
-                item_id = request.GET.get("item")
-                delete_item = request.GET.get("delete", False)
-                flash_message = ""
-                item_added = False
 
-
-                # if the item exist in the get call 
-                if item_id:
-                    # Using the item id get the exact variation
-                    item_instance = get_object_or_404(Variation, id=item_id)
-                    # get the quantity from the request
-                    qty = request.GET.get("qty", 1)
-                    # if the quantity 0 or - make the delete_item True
-                    try:
-                        if int(qty) < 1:
-                            delete_item = True
-                    except:
-                        raise Http404
-                    # 
-                    cart_item, created = CartItem.objects.get_or_create(cart=cart, item=item_instance)
-                    if created:
-                        flash_message = "Successfully added to the cart"
-                        item_added = True
-                    # if delete_item marked true before 
-                    if delete_item:
-                        flash_message = "Item removed successfully."
-                        cart_item.delete()
-                    else:
-                        if not created:
-                            flash_message = "Quantity has been updated successfully."
-                        cart_item.quantity = qty
-                        cart_item.save()
-
-
-class CartAPIView(CartUpdateAPIMixin, APIView):
-    token = None
+class CartAPIView(TokenMixin, CartUpdateAPIMixin, APIView):
     cart = None
 
-    def create_token(self, cart_id):
-        data = {
-            "cart_id": cart_id
-        }
-        token = base64.standard_b64encode(str(data).encode("utf-8")).decode("utf-8")
-        self.token = token
-        return token
-
-    # 
+    # get the cart from token otherwise create new cart
     def get_cart(self):
         # if the token exist get it from the request
         token_data = self.request.GET.get('token')
+
         # create dummy cart
         cart_obj = None
 
         # if the get request has token, decode it, get cart_id, return cart object
         if token_data:
-            token_dict = ast.literal_eval(base64.standard_b64decode(token_data.encode("utf-8")).decode("utf-8"))
+            # token_dict = ast.literal_eval(base64.standard_b64decode(token_data.encode("utf-8")).decode("utf-8"))
+            token_dict = self.parse_token(token=token_data)
             cart_id = token_dict.get("cart_id")
             try:
                 cart_obj = Cart.objects.get(id=cart_id)
@@ -86,7 +43,11 @@ class CartAPIView(CartUpdateAPIMixin, APIView):
             if self.request.user.is_authenticated:
                 cart.user = self.request.user
             cart.save()
-            self.create_token(cart.id)
+            data = {
+                "cart_id": cart.id,
+            }
+            # use the create_token from the mixins to create the token for the new cart
+            self.create_token(data)
             cart_obj = cart
         return cart_obj
 
@@ -97,16 +58,20 @@ class CartAPIView(CartUpdateAPIMixin, APIView):
         self.cart = cart
         # if the get call has cart and has item it will update the cart 
         self.update_cart()
+
+        # getting the cart items through serializer 
+        items = CartItemSerializer(cart.cartitem_set.all(), many=True)
         data = {
             "token": self.token,
             "cart" : cart.id,
+            "count": cart.items.count(),
+            "items": items.data,
             "total": cart.total,
             "subtotal": cart.subtotal,
             "tax_total": cart.tax_total,
-            "count": cart.items.count(),
-            "items": cart.items.count(),
-
+            
         }
         return Response(data)
 
-# /api/cart/?token=eydjYXJ0X2lkJzogMTh9&item=3&qty=10
+
+

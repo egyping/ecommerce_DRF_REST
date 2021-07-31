@@ -48,3 +48,16 @@ urlpatterns = [
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+# create new cart 
+# /api/cart/
+
+# get cart information 
+# /api/cart/?token=eydjYXJ0X2lkJzogMTh9
+
+# add item along with quantity 
+# /api/cart/?token=eydjYXJ0X2lkJzogMTh9&item=3&qty=10
+
+# delete item from cart 
+# /api/cart/?token=eydjYXJ0X2lkJzogMTh9&item=3&qty=10&delete=true
