@@ -15,30 +15,39 @@ class CartUpdateAPIMixin(object):
         def update_cart(self, *args, **kwargs):
             request = self.request
             cart = self.cart
-            item_id = request.GET.get("item")
-            delete_item = request.GET.get("delete", False)
-            flash_message = ""
-            item_added = False
-            if item_id:
-                item_instance = get_object_or_404(Variation, id=item_id)
-                qty = request.GET.get("qty", 1)
-                try:
-                    if int(qty) < 1:
-                        delete_item = True
-                except:
-                    raise Http404
-                cart_item, created = CartItem.objects.get_or_create(cart=cart, item=item_instance)
-                if created:
-                    flash_message = "Successfully added to the cart"
-                    item_added = True
-                if delete_item:
-                    flash_message = "Item removed successfully."
-                    cart_item.delete()
-                else:
-                    if not created:
-                        flash_message = "Quantity has been updated successfully."
-                    cart_item.quantity = qty
-                    cart_item.save()
+            if cart:
+                item_id = request.GET.get("item")
+                delete_item = request.GET.get("delete", False)
+                flash_message = ""
+                item_added = False
+
+
+                # if the item exist in the get call 
+                if item_id:
+                    # Using the item id get the exact variation
+                    item_instance = get_object_or_404(Variation, id=item_id)
+                    # get the quantity from the request
+                    qty = request.GET.get("qty", 1)
+                    # if the quantity 0 or - make the delete_item True
+                    try:
+                        if int(qty) < 1:
+                            delete_item = True
+                    except:
+                        raise Http404
+                    # 
+                    cart_item, created = CartItem.objects.get_or_create(cart=cart, item=item_instance)
+                    if created:
+                        flash_message = "Successfully added to the cart"
+                        item_added = True
+                    # if delete_item marked true before 
+                    if delete_item:
+                        flash_message = "Item removed successfully."
+                        cart_item.delete()
+                    else:
+                        if not created:
+                            flash_message = "Quantity has been updated successfully."
+                        cart_item.quantity = qty
+                        cart_item.save()
 
 
 class CartAPIView(CartUpdateAPIMixin, APIView):
@@ -55,7 +64,9 @@ class CartAPIView(CartUpdateAPIMixin, APIView):
 
     # 
     def get_cart(self):
+        # if the token exist get it from the request
         token_data = self.request.GET.get('token')
+        # create dummy cart
         cart_obj = None
 
         # if the get request has token, decode it, get cart_id, return cart object
@@ -68,7 +79,7 @@ class CartAPIView(CartUpdateAPIMixin, APIView):
                 pass
             self.token = token_data
 
-        # If 
+        # If no cart passed in the request it will create new cart object 
         if cart_obj == None:
             cart = Cart()
             cart.tax_percentage = 0.075
@@ -79,9 +90,12 @@ class CartAPIView(CartUpdateAPIMixin, APIView):
             cart_obj = cart
         return cart_obj
 
+    # 
     def get(self, request, format=None):
+        # First either i will get the cart data or i wil create new one 
         cart = self.get_cart()
         self.cart = cart
+        # if the get call has cart and has item it will update the cart 
         self.update_cart()
         data = {
             "token": self.token,
@@ -90,6 +104,9 @@ class CartAPIView(CartUpdateAPIMixin, APIView):
             "subtotal": cart.subtotal,
             "tax_total": cart.tax_total,
             "count": cart.items.count(),
-            "items": cart.items.count()
+            "items": cart.items.count(),
+
         }
         return Response(data)
+
+# /api/cart/?token=eydjYXJ0X2lkJzogMTh9&item=3&qty=10
