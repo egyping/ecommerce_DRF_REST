@@ -1,4 +1,5 @@
 
+import debug_toolbar
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -21,6 +22,9 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # Django debug tool bar
+    path('__debug__/', include(debug_toolbar.urls)),
     
     # JWT Token => Login API 
     path('api/user/login/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),

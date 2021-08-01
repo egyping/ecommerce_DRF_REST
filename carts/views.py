@@ -12,7 +12,9 @@ from catalog.models import Variation
 from.serializers import CartItemSerializer
 from .mixins import TokenMixin, CartUpdateAPIMixin
 
+class CheckoutAPIView(APIView):
 
+    pass
 
 class CartAPIView(TokenMixin, CartUpdateAPIMixin, APIView):
     cart = None

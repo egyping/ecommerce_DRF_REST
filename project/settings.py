@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'orders',
     'carts',
     'homepage',
+    'debug_toolbar',
 ]
 
 
@@ -88,6 +89,7 @@ BRAINTREE_ENVIRONEMNT = "Sandbox"
 
 
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -175,10 +177,16 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static', 'static_root')
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR , 'static')
-    ]
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR , 'static'),
+    )
+    
 
 # Images uploaded by the users 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR , 'media')
+
+
+INTERNAL_IPS = [
+    '127.0.0.1',
+]
