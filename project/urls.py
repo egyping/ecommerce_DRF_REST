@@ -10,7 +10,7 @@ from catalog.views import (
     ProductListAPIView,
     ProductRetrieveAPIView
 )
-from carts.views import CartAPIView
+from carts.views import CartAPIView, CheckoutAPIView
 from orders.views import UserCheckoutAPI
 # from rest_framework_simplejwt.views import (
 #     TokenObtainPairView,
@@ -45,6 +45,9 @@ urlpatterns = [
 
     # Cart 
     path('api/cart/', CartAPIView.as_view(), name="cart_api"),
+
+    # Checkout 
+    path('api/checkout/', CheckoutAPIView.as_view(), name="checkout_api"),
 
     
 ]

@@ -11,10 +11,45 @@ from catalog.models import Variation
 
 from.serializers import CartItemSerializer
 from .mixins import TokenMixin, CartUpdateAPIMixin
+from rest_framework import status
 
-class CheckoutAPIView(APIView):
+class CheckoutAPIView(TokenMixin, APIView):
 
-    pass
+    def get(self, request, format=None):
+        cart_token = request.GET.get("cart_token")
+        print(cart_token)
+
+        # if you hit the API wothout token
+        if cart_token is None:
+            data = {
+                "success": False,
+                "message": "No Token",
+            }
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+        # If you hit the API with token but no idea wrong or not
+        else:
+            cart_token_data = self.parse_token(cart_token)
+            print(str(cart_token_data))
+            cart_id = cart_token_data.get("cart_id")
+            print(cart_id)
+            # Correct token only
+            #if cart_id:
+            cart = Cart.objects.get(id=cart_id)
+            print(cart)
+            data = {
+                "id": self.cart.id,
+            }
+            return Response(data)
+
+            # If you hit the API with wrong Token 
+            # else:
+            #     data = {
+            #         "success": False,
+            #         "message": "Wrong Token",
+            #     }
+            #     return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
 
 class CartAPIView(TokenMixin, CartUpdateAPIMixin, APIView):
     cart = None
