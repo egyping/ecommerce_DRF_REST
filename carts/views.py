@@ -16,8 +16,7 @@ from rest_framework import status
 class CheckoutAPIView(TokenMixin, APIView):
 
     def get(self, request, format=None):
-        cart_token = request.GET.get("cart_token")
-        print(cart_token)
+        cart_token = request.GET.get("token")
 
         # if you hit the API wothout token
         if cart_token is None:
@@ -30,28 +29,31 @@ class CheckoutAPIView(TokenMixin, APIView):
         # If you hit the API with token but no idea wrong or not
         else:
             cart_token_data = self.parse_token(cart_token)
-            print(str(cart_token_data))
             cart_id = cart_token_data.get("cart_id")
-            print(cart_id)
+
             # Correct token only
-            #if cart_id:
-            cart = Cart.objects.get(id=cart_id)
-            print(cart)
-            data = {
-                "id": self.cart.id,
-            }
-            return Response(data)
+            if cart_id:
+                cart = Cart.objects.get(id=cart_id)
+                print(cart)
+                data = {
+                    "id": cart.id,
+                }
+                return Response(data)
 
             # If you hit the API with wrong Token 
-            # else:
-            #     data = {
-            #         "success": False,
-            #         "message": "Wrong Token",
-            #     }
-            #     return Response(data, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                data = {
+                    "success": False,
+                    "message": "Checkout: Wrong Token",
+                }
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+
+
 
 
 class CartAPIView(TokenMixin, CartUpdateAPIMixin, APIView):
+
     cart = None
 
     # get the cart from token otherwise create new cart
@@ -59,7 +61,7 @@ class CartAPIView(TokenMixin, CartUpdateAPIMixin, APIView):
         # if the token exist get it from the request
         token_data = self.request.GET.get('token')
 
-        # create dummy cart
+        # create dummy cart object
         cart_obj = None
 
         # if the get request has token, decode it, get cart_id, return cart object
@@ -67,11 +69,13 @@ class CartAPIView(TokenMixin, CartUpdateAPIMixin, APIView):
             # token_dict = ast.literal_eval(base64.standard_b64decode(token_data.encode("utf-8")).decode("utf-8"))
             token_dict = self.parse_token(token=token_data)
             cart_id = token_dict.get("cart_id")
+            print(cart_id)
             try:
                 cart_obj = Cart.objects.get(id=cart_id)
             except:
                 pass
             self.token = token_data
+
 
         # If no cart passed in the request it will create new cart object 
         if cart_obj == None:
@@ -88,7 +92,9 @@ class CartAPIView(TokenMixin, CartUpdateAPIMixin, APIView):
             cart_obj = cart
         return cart_obj
 
-    # 
+
+
+    # The entry point for /cart/ API to create & update cart
     def get(self, request, format=None):
         # First either i will get the cart data or i wil create new one 
         cart = self.get_cart()

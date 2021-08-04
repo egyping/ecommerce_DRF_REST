@@ -68,3 +68,16 @@ urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # delete item from cart 
 # /api/cart/?token=eydjYXJ0X2lkJzogMTh9&item=3&qty=10&delete=true
+
+
+
+# Checkout API 
+# api/checkout/
+
+# api/checkout/ only 
+# {
+#     "success": false,
+#     "message": "No Token"
+# }
+
+# http://127.0.0.1:8000/api/checkout/?token=eydjYXJ0X2lkJzogNDF9

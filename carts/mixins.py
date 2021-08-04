@@ -49,6 +49,7 @@ class CartUpdateAPIMixin(object):
 
 class TokenMixin(object):
     token = None
+    
     def create_token(self, data_dict):
         if type(data_dict) == type(dict()):
             token = base64.standard_b64encode(str(data_dict).encode("utf-8")).decode("utf-8")
