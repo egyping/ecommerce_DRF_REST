@@ -10,44 +10,18 @@ from django.http import Http404
 from catalog.models import Variation
 
 from.serializers import CartItemSerializer
-from .mixins import TokenMixin, CartUpdateAPIMixin
+from .mixins import TokenMixin, CartUpdateAPIMixin, CartTokenMixin
 from rest_framework import status
 
-class CheckoutAPIView(TokenMixin, APIView):
 
+
+
+class CheckoutAPIView(CartTokenMixin, TokenMixin, APIView):
+    # GET call, then access the CartTokenMixin
     def get(self, request, format=None):
-        cart_token = request.GET.get("token")
-
-        # if you hit the API wothout token
-        if cart_token is None:
-            data = {
-                "success": False,
-                "message": "No Token",
-            }
-            return Response(data, status=status.HTTP_400_BAD_REQUEST)
-
-        # If you hit the API with token but no idea wrong or not
-        else:
-            cart_token_data = self.parse_token(cart_token)
-            cart_id = cart_token_data.get("cart_id")
-
-            # Correct token only
-            if cart_id:
-                cart = Cart.objects.get(id=cart_id)
-                print(cart)
-                data = {
-                    "id": cart.id,
-                }
-                return Response(data)
-
-            # If you hit the API with wrong Token 
-            else:
-                data = {
-                    "success": False,
-                    "message": "Checkout: Wrong Token",
-                }
-                return Response(data, status=status.HTTP_400_BAD_REQUEST)
-
+        data, cart_obj, response_status = self.get_cart_from_token()
+        print(cart_obj)
+        return Response(data, status=response_status)
 
 
 

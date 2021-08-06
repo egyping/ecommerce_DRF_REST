@@ -1,9 +1,10 @@
 import base64
 import ast
-from carts.models import CartItem
+from carts.models import Cart, CartItem
 from django.http import Http404
 from rest_framework.generics import get_object_or_404
 from catalog.models import Variation
+from rest_framework import status
 
 
 
@@ -70,3 +71,40 @@ class TokenMixin(object):
             return token_dict
         except:
             return {}
+
+class CartTokenMixin(object):
+    # GET call 
+    def get_cart_from_token(self):
+        request = self.request
+        response_status = status.HTTP_200_OK
+
+        # get the token value from the url
+        cart_token = request.GET.get("token")
+        message = "Wrong token or invalid cart"
+
+        # parse the cart token and get the cart_id key\value
+        cart_token_data = self.parse_token(cart_token)
+        cart_id = cart_token_data.get("cart_id")
+
+        # Using the valide cart_id get the cart instance
+        try:
+            cart = Cart.objects.get(id=cart_id)
+        except:
+            cart = None
+
+        # if you hit the API woth wrong token or parsed token led to invalid cart
+        if cart == None:
+            data = {
+                "success": False,
+                "message": message,
+            }
+            response_status = status.HTTP_400_BAD_REQUEST
+
+        # else response the correct data
+        else:
+            data = {
+                "id": cart.id,
+                "success": True,
+            }
+
+        return data, cart, response_status

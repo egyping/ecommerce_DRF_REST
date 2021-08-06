@@ -49,7 +49,6 @@ urlpatterns = [
     # Checkout 
     path('api/checkout/', CheckoutAPIView.as_view(), name="checkout_api"),
 
-    
 ]
 
 
