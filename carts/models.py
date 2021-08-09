@@ -62,6 +62,7 @@ class Cart(models.Model):
         self.subtotal = "%.2f" %(subtotal)
         self.save()
 
+    # API to mark the cart in active if the order is paid
     def is_complete(self):
         self.active = False
         self.save()

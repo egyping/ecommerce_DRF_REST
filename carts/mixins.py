@@ -32,7 +32,7 @@ class CartUpdateAPIMixin(object):
                             delete_item = True
                     except:
                         raise Http404
-                    # 
+                    # create new cart item object and return the object and bolean 
                     cart_item, created = CartItem.objects.get_or_create(cart=cart, item=item_instance)
                     if created:
                         flash_message = "Successfully added to the cart"
@@ -72,7 +72,9 @@ class TokenMixin(object):
         except:
             return {}
 
-class CartTokenMixin(object):
+class CartTokenMixin(TokenMixin, object):
+
+    token = None
     # GET call 
     def get_cart_from_token(self):
         request = self.request
@@ -80,6 +82,7 @@ class CartTokenMixin(object):
 
         # get the token value from the url
         cart_token = request.GET.get("token")
+        #cart_token = request.GET.get("token")
         message = "Wrong token or invalid cart"
 
         # parse the cart token and get the cart_id key\value
@@ -102,6 +105,7 @@ class CartTokenMixin(object):
 
         # else response the correct data
         else:
+            self.token = cart_token
             data = {
                 "id": cart.id,
                 "success": True,

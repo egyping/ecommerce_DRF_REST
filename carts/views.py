@@ -12,47 +12,87 @@ from catalog.models import Variation
 from.serializers import CartItemSerializer
 from .mixins import TokenMixin, CartUpdateAPIMixin, CartTokenMixin
 from rest_framework import status
+from orders.models import UserCheckout, Order, UserAddress
+
+from orders.serializers import OrderSerializer, UserAddressSerializer
 
 
 
 
-class CheckoutAPIView(CartTokenMixin, TokenMixin, APIView):
+class CheckoutAPIView(CartTokenMixin, APIView):
     # GET call, then access the CartTokenMixin
     def get(self, request, format=None):
+        # using the token get the cart data by using CartTokenMixin.get_cart_from_token
         data, cart_obj, response_status = self.get_cart_from_token()
-        print(cart_obj)
+
+        # getting the user checkout id from the GET call 
+        user_checkout_id = request.GET.get("checkout_id")
+        try:
+            user_checkout = UserCheckout.objects.get(id = int(user_checkout_id))
+        except:
+            user_checkout = None
+        
+        # if no user in the GET call return error on the spot
+        if user_checkout == None:
+                data = {
+                    "message": "A valid user or guest user is required"
+                }
+                response_status = status.HTTP_400_BAD_REQUEST
+                # return and don't continue
+                return Response(data, status=response_status)
+
+
+        if cart_obj:
+            if cart_obj.items.count() == 0:
+                data = {
+                    "message": "Your cart is empty"
+                }
+                response_status = status.HTTP_400_BAD_REQUEST
+
+            else:
+                # get the order or create it
+                order, created = Order.objects.get_or_create(cart=cart_obj)
+                # if the order is paid return message
+                if order.is_complete:
+                    # to mark the cart.active false
+                    order.cart.is_complete()
+                    data = {
+                        "message": "This order has been complete"
+                    }
+
+                    return Response(data)
+                
+                #Order created save it
+                order.save()
+
+                # use serializer to return data
+                data = OrderSerializer(order).data
+
+                # the below data['field_name'] to response the JSON BUT its better to use the above serializer
+                # data["order"] = order.id
+                # data["user"] = order.user
+                # data["shipping_address"] = order.shipping_address
+                # data["billing_address"] = order.billing_address
+                # data["shipping_total_price"] = order.shipping_total_price
+                # data["subtotal"] = cart_obj.total
+                # data["total"] = order.order_total
+
+
         return Response(data, status=response_status)
 
 
 
-
-class CartAPIView(TokenMixin, CartUpdateAPIMixin, APIView):
-
+class CartAPIView(CartTokenMixin, CartUpdateAPIMixin, APIView):
     cart = None
-
     # get the cart from token otherwise create new cart
     def get_cart(self):
-        # if the token exist get it from the request
-        token_data = self.request.GET.get('token')
+        # use the CartTokenMixin to get the cart data or return error 
+        data, cart_obj, response_status = self.get_cart_from_token()
 
-        # create dummy cart object
-        cart_obj = None
-
-        # if the get request has token, decode it, get cart_id, return cart object
-        if token_data:
-            # token_dict = ast.literal_eval(base64.standard_b64decode(token_data.encode("utf-8")).decode("utf-8"))
-            token_dict = self.parse_token(token=token_data)
-            cart_id = token_dict.get("cart_id")
-            print(cart_id)
-            try:
-                cart_obj = Cart.objects.get(id=cart_id)
-            except:
-                pass
-            self.token = token_data
-
-
-        # If no cart passed in the request it will create new cart object 
-        if cart_obj == None:
+        # If no cart passed from CartTokenMixin then we will create one
+        # and if the retreived cart is not active it will create new cart
+        if cart_obj == None or not cart_obj.active:
+            # new cart instance
             cart = Cart()
             cart.tax_percentage = 0.075
             if self.request.user.is_authenticated:
@@ -61,12 +101,10 @@ class CartAPIView(TokenMixin, CartUpdateAPIMixin, APIView):
             data = {
                 "cart_id": cart.id,
             }
-            # use the create_token from the mixins to create the token for the new cart
+            # use the create_token from CartUpdateAPIMixin to create the token for the new cart
             self.create_token(data)
             cart_obj = cart
         return cart_obj
-
-
 
     # The entry point for /cart/ API to create & update cart
     def get(self, request, format=None):
@@ -86,9 +124,8 @@ class CartAPIView(TokenMixin, CartUpdateAPIMixin, APIView):
             "total": cart.total,
             "subtotal": cart.subtotal,
             "tax_total": cart.tax_total,
+            "active": cart.active,
             
         }
         return Response(data)
-
-
 

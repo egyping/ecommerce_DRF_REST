@@ -5,12 +5,45 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
 from .models import UserCheckout
-
+from orders.models import UserAddress
+from orders.serializers import UserAddressSerializer
+from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
+from carts.mixins import TokenMixin
 
 User = get_user_model()
 
+# Create view for address model 
+class UserAddressCreateAPIView(CreateAPIView):
+    model = UserAddress
+    serializer_class = UserAddressSerializer
 
-class UserCheckoutMixin(object):
+
+class UserAddressListAPIView(TokenMixin, ListAPIView):
+    model = UserAddress
+    queryset = UserAddress.objects.all()
+    serializer_class = UserAddressSerializer
+
+    # modifying the query to get the exact user addresses
+    def get_queryset(self, *args, **kwargs):
+        # from the url get token get the token value
+        user_checkout_token = self.request.GET.get("token")
+        # using TokenMixin.parse_token retrive the user checkout data 
+        # {'success': True, 'braintree_id': '544011307', 'user_checkout_id': 2}
+        user_checkout_data = self.parse_token(user_checkout_token)
+        # get the value of the user_checkout_id in this case object 2
+        user_checkout_id = user_checkout_data.get("user_checkout_id")
+
+        # if the user authenticated and has token its straight forward 
+        if self.request.user.is_authenticated:
+            return UserAddress.objects.filter(user__user=self.request.user)
+        # if guest checkout get his aaddresses using the user_checkout_id object
+        elif user_checkout_id:
+            return UserAddress.objects.filter(user__id=int(user_checkout_id))
+        else:
+            return []
+
+            
+class UserCheckoutMixin(TokenMixin, object):
     def user_failure(self, message=None):
         data = {
             "message": "There was an error. Please try again.",
@@ -49,15 +82,19 @@ class UserCheckoutMixin(object):
             pass
 
         if user_checkout:
-            data["bt_token"] = user_checkout.get_client_token()
             data["success"]= True
+            # it retreive braintree customer ID or generate
             data["braintree_id"] = user_checkout.get_braintree_id
+
+            # The user checkout object ID
             data["user_checkout_id"] = user_checkout.id
+
+            # using TokenMixin.CreateToken create encoded token from the data dictionary
+            # This token will be used in the address list api to identify the exact user
+            data['user_checkout_token'] = self.create_token(data)
             
-            
-            # del data["braintree_id"]
-            # del data["user_checkout_id"]
-            # data["braintree_client_token"] = user_checkout.get_client_token()
+            # get_client_token create token using braintree engine
+            data["bt_token"] = user_checkout.get_client_token()
 
         return data
 
